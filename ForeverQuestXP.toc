@@ -1,0 +1,7 @@
+## Interface: 16001
+## Title: Quest XP Forecast
+## Notes: Preview quest rewards on the default experience bar.
+## Version: 1.0.4
+## SavedVariables: ForeverQuestXPDB
+
+ForeverQuestXP.lua

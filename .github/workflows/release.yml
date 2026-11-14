@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ForeverQuestXP.toc
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quest-xp-forecast-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Package and publish the TOC version
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="$(sed -n 's/^## Version: \([0-9][0-9.]*\)$/\1/p' ForeverQuestXP.toc)"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Expected a version in major.minor.patch format in ForeverQuestXP.toc" >&2
+            exit 1
+          fi
+          tag="v$version"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists."
+            exit 0
+          fi
+          mkdir ForeverQuestXP
+          cp ForeverQuestXP.toc ForeverQuestXP.lua README.md LICENSE ForeverQuestXP/
+          archive="QuestXPForecast-$version.zip"
+          zip -r "$archive" ForeverQuestXP
+          unzip -t "$archive"
+          gh release create "$tag" "$archive" --target "$GITHUB_SHA" --title "Quest XP Forecast $tag" --generate-notes
