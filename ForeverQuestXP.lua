@@ -114,6 +114,13 @@ local function GetXPRemaining(tracker)
     return math.max(0, maximum - UnitXP("player"))
 end
 
+local function GetRestedXPText()
+    local restedXP = GetXPExhaustion()
+    if restedXP and restedXP > 0 then
+        return BreakUpLargeNumbers(restedXP)
+    end
+end
+
 local function UpdateXPText(tracker)
     local remaining = GetXPRemaining(tracker)
     if not remaining then return end
@@ -121,6 +128,10 @@ local function UpdateXPText(tracker)
     local text = ("%s  -  %s XP to level  -  %s quest XP"):format(
         XP_STATUS_BAR_TEXT:format(UnitXP("player"), UnitXPMax("player")),
         BreakUpLargeNumbers(remaining), BreakUpLargeNumbers(readyXP + inProgressXP))
+    local restedXP = GetRestedXPText()
+    if restedXP then
+        text = text .. "  -  " .. restedXP .. " rested XP"
+    end
     tracker:SetBarText(text)
 end
 
@@ -131,6 +142,10 @@ local function AppendQuestTooltip(tracker)
 
     local total = readyXP + inProgressXP
     local totalLabel = ForeverQuestXPDB.trackedOnly and "Tracked quest XP" or "Total quest XP"
+    local restedXP = GetRestedXPText()
+    if restedXP then
+        tooltip:AddDoubleLine("Rested XP", restedXP .. " XP", 1, 0.82, 0, 1, 1, 1)
+    end
     tooltip:AddDoubleLine("Ready to turn in", BreakUpLargeNumbers(readyXP) .. " XP", 1, 0.82, 0, 1, 1, 1)
     tooltip:AddDoubleLine("In progress", BreakUpLargeNumbers(inProgressXP) .. " XP", 1, 0.82, 0, 1, 1, 1)
     tooltip:AddDoubleLine(totalLabel, BreakUpLargeNumbers(total) .. " XP", 1, 0.82, 0, 1, 1, 1)
