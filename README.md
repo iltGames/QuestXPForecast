@@ -11,6 +11,8 @@ Preview quest turn-in XP on the default experience bar in World of Warcraft: For
 
 Install through CurseForge once the project is approved, or download the addon ZIP from [GitHub Releases](https://github.com/iltGames/QuestXPForecast/releases) and extract it into `_forever_/Interface/AddOns`. The ZIP contains the `ForeverQuestXP` folder. Keeping this folder name preserves settings from earlier versions.
 
+On first load, the addon opens its settings page so you can adjust the forecast display. You can reopen it later from **Options > AddOns > Quest XP Forecast**.
+
 If BetterBlizzFrames' Quest XP Bar is enabled, both addons will draw a forecast. Disable that option in BetterBlizzFrames to use this addon's forecast.
 
 ## Development

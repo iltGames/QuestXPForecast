@@ -5,6 +5,7 @@ local shapeAtlas = "UI-HUD-ExperienceBar-Fill-Experience"
 local overlays = {}
 local readyXP, inProgressXP = 0, 0
 local refreshQueued
+local settingsCategory
 local atlasInfo
 local defaultColor = "FFDBA540"
 
@@ -239,7 +240,9 @@ local function RegisterFillSettings(category, key, label, opacity)
 end
 
 local function RegisterSettings()
-    ForeverQuestXPDB = ForeverQuestXPDB or {}
+    if not ForeverQuestXPDB then
+        ForeverQuestXPDB = { firstRunPending = true }
+    end
     local category = Settings.RegisterVerticalLayoutCategory(title)
     local setting = Settings.RegisterAddOnSetting(category, "ForeverQuestXP_TrackedOnly", "trackedOnly",
         ForeverQuestXPDB, Settings.VarType.Boolean, "Tracked quests only", false)
@@ -251,11 +254,22 @@ local function RegisterSettings()
     RegisterSlider(category, "fontSize", "XP bar font size", 12, 8, 24, 1,
         "Change the size of the text shown on the XP bar.", function(value) return tostring(value) end)
     Settings.RegisterAddOnCategory(category)
+    settingsCategory = category
+end
+
+local function OpenFirstRunSettings()
+    if not settingsCategory or not ForeverQuestXPDB.firstRunPending or InCombatLockdown() then return end
+
+    Settings.OpenToCategory(settingsCategory:GetID())
+    if SettingsPanel:IsShown() and SettingsPanel:GetCurrentCategory() == settingsCategory then
+        ForeverQuestXPDB.firstRunPending = nil
+    end
 end
 
 local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("PLAYER_ENTERING_WORLD")
+events:RegisterEvent("PLAYER_REGEN_ENABLED")
 events:RegisterEvent("PLAYER_XP_UPDATE")
 events:RegisterEvent("PLAYER_LEVEL_UP")
 events:RegisterEvent("QUEST_LOG_UPDATE")
@@ -273,6 +287,11 @@ events:SetScript("OnEvent", function(_, event, arg1)
         end
     elseif event == "PLAYER_ENTERING_WORLD" then
         QueueQuestRefresh()
+        if ForeverQuestXPDB and ForeverQuestXPDB.firstRunPending then
+            C_Timer.After(0, OpenFirstRunSettings)
+        end
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        OpenFirstRunSettings()
     elseif event == "PLAYER_XP_UPDATE" or event == "UPDATE_EXHAUSTION" then
         Refresh()
     elseif ForeverQuestXPDB then
