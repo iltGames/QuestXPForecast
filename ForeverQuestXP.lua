@@ -6,7 +6,6 @@ local overlays = {}
 local readyXP, inProgressXP = 0, 0
 local refreshQueued
 local atlasInfo
-local settingsCategory, minimapButton
 local defaultColor = "FFDBA540"
 
 local function ScanQuestXP()
@@ -219,78 +218,6 @@ local function QueueQuestRefresh()
     end)
 end
 
-local function PositionMinimapButton(button)
-    local angle = ForeverQuestXPDB.minimapAngle or math.rad(220)
-    local x, y = math.cos(angle), math.sin(angle)
-    if GetMinimapShape and GetMinimapShape() == "SQUARE" then
-        local edge = math.max(math.abs(x), math.abs(y))
-        x, y = x / edge, y / edge
-    end
-    button:ClearAllPoints()
-    button:SetPoint("CENTER", Minimap, "CENTER", x * (Minimap:GetWidth() / 2 + 3), y * (Minimap:GetHeight() / 2 + 3))
-end
-
-local function DragMinimapButton(button)
-    local centerX, centerY = Minimap:GetCenter()
-    if not centerX then return end
-
-    local x, y = GetCursorPosition()
-    local scale = Minimap:GetEffectiveScale()
-    ForeverQuestXPDB.minimapAngle = math.atan2(y / scale - centerY, x / scale - centerX)
-    PositionMinimapButton(button)
-end
-
-local function CreateMinimapButton()
-    if minimapButton or not Minimap then return end
-
-    local button = CreateFrame("Button", "ForeverQuestXPMinimapButton", Minimap)
-    minimapButton = button
-    button:SetSize(31, 31)
-    button:SetFrameLevel(Minimap:GetFrameLevel() + 8)
-    button:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
-    button:RegisterForDrag("LeftButton")
-
-    local background = button:CreateTexture(nil, "BACKGROUND")
-    background:SetTexture("Interface\\Minimap\\UI-Minimap-Background")
-    background:SetSize(20, 20)
-    background:SetPoint("TOPLEFT", 7, -5)
-
-    local icon = button:CreateTexture(nil, "ARTWORK")
-    icon:SetTexture("Interface\\Icons\\INV_Misc_Book_09")
-    icon:SetSize(20, 20)
-    icon:SetPoint("TOPLEFT", 7, -5)
-    local mask = button:CreateMaskTexture()
-    mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-    mask:SetAllPoints(icon)
-    icon:AddMaskTexture(mask)
-
-    local border = button:CreateTexture(nil, "OVERLAY")
-    border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
-    border:SetSize(53, 53)
-    border:SetPoint("TOPLEFT")
-
-    button:SetScript("OnClick", function()
-        Settings.OpenToCategory(settingsCategory:GetID())
-    end)
-    button:SetScript("OnDragStart", function(self)
-        GameTooltip:Hide()
-        self:SetScript("OnUpdate", DragMinimapButton)
-    end)
-    button:SetScript("OnDragStop", function(self)
-        self:SetScript("OnUpdate", nil)
-        DragMinimapButton(self)
-    end)
-    button:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-        GameTooltip:SetText(title)
-        GameTooltip:AddLine("Click to open settings. Drag to move.", 1, 1, 1)
-        GameTooltip:Show()
-    end)
-    button:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    Minimap:HookScript("OnSizeChanged", function() PositionMinimapButton(button) end)
-    PositionMinimapButton(button)
-end
-
 local function RegisterSlider(category, key, label, default, minimum, maximum, step, tooltip, formatValue)
     local setting = Settings.RegisterAddOnSetting(category, addonName .. "_" .. key, key,
         ForeverQuestXPDB, Settings.VarType.Number, label, default)
@@ -324,8 +251,6 @@ local function RegisterSettings()
     RegisterSlider(category, "fontSize", "XP bar font size", 12, 8, 24, 1,
         "Change the size of the text shown on the XP bar.", function(value) return tostring(value) end)
     Settings.RegisterAddOnCategory(category)
-    settingsCategory = category
-    CreateMinimapButton()
 end
 
 local events = CreateFrame("Frame")
@@ -347,7 +272,6 @@ events:SetScript("OnEvent", function(_, event, arg1)
             QueueQuestRefresh()
         end
     elseif event == "PLAYER_ENTERING_WORLD" then
-        CreateMinimapButton()
         QueueQuestRefresh()
     elseif event == "PLAYER_XP_UPDATE" or event == "UPDATE_EXHAUSTION" then
         Refresh()

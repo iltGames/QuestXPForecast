@@ -5,7 +5,7 @@ Preview quest turn-in XP on the default experience bar in World of Warcraft: For
 - See XP from quests ready to turn in and quests still in progress.
 - Hover over the bar for the breakdown and how much XP you would still need after turning in those quests.
 - Enable **Tracked quests only** to forecast just the quests on your objective tracker.
-- Customize each fill's color and opacity and the font size in **Options > AddOns > Quest XP Forecast**. The draggable minimap button opens the same settings.
+- Customize each fill's color and opacity and the font size in **Options > AddOns > Quest XP Forecast**.
 
 ## Installation
 
@@ -27,4 +27,4 @@ This installs an independently named **Quest XP Forecast (Dev)** addon with its 
 
 Bump `## Version` in `ForeverQuestXP.toc` and push it to `main`. As with TotemDeck, that change builds an installable ZIP and publishes a GitHub release for the new version. The GitHub push webhook notifies CurseForge, which packages new version tags from the same repository. `.pkgmeta` keeps the install folder named `ForeverQuestXP` and excludes development scripts.
 
-MIT © iltGames
+MIT c iltGames

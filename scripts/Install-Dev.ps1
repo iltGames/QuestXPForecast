@@ -29,8 +29,7 @@ $toc.Replace('## Title: Quest XP Forecast', '## Title: Quest XP Forecast (Dev)')
 
 $lua = Get-Content -Raw -LiteralPath (Join-Path $source 'ForeverQuestXP.lua')
 $lua.Replace('local title = "Quest XP Forecast"', 'local title = "Quest XP Forecast (Dev)"').
-    Replace('ForeverQuestXPDB', 'ForeverQuestXPDevDB').
-    Replace('ForeverQuestXPMinimapButton', 'ForeverQuestXPDevMinimapButton') |
+    Replace('ForeverQuestXPDB', 'ForeverQuestXPDevDB') |
     Set-Content -NoNewline -Encoding utf8 -LiteralPath (Join-Path $target 'ForeverQuestXPDev.lua')
 
 Write-Host "Installed Quest XP Forecast (Dev) in $target"
