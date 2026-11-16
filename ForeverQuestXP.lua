@@ -7,6 +7,7 @@ local readyXP, inProgressXP = 0, 0
 local refreshQueued
 local atlasInfo
 local defaultColor = "FFDBA540"
+local settingsControls
 
 local function ScanQuestXP()
     local ready, inProgress = 0, 0
@@ -224,7 +225,7 @@ local function RegisterSlider(category, key, label, default, minimum, maximum, s
     setting:SetValueChangedCallback(RefreshAppearance)
     local options = Settings.CreateSliderOptions(minimum, maximum, step)
     options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, formatValue)
-    Settings.CreateSlider(category, setting, options, tooltip)
+    return Settings.CreateSlider(category, setting, options, tooltip)
 end
 
 local function RegisterFillSettings(category, key, label, opacity)
@@ -232,30 +233,84 @@ local function RegisterFillSettings(category, key, label, opacity)
     local setting = Settings.RegisterAddOnSetting(category, addonName .. "_" .. colorKey, colorKey,
         ForeverQuestXPDB, Settings.VarType.String, label .. " color", defaultColor)
     setting:SetValueChangedCallback(RefreshAppearance)
-    Settings.CreateColorSwatch(category, setting, "Choose the color of this quest XP fill.")
-    RegisterSlider(category, key .. "Opacity", label .. " opacity", opacity, 0, 1, 0.05,
+    local color = Settings.CreateColorSwatch(category, setting, "Choose the color of this quest XP fill.")
+    local alpha = RegisterSlider(category, key .. "Opacity", label .. " opacity", opacity, 0, 1, 0.05,
         "Adjust how much of the default XP bar shows through this fill.",
         function(value) return ("%d%%"):format(math.floor(value * 100 + 0.5)) end)
+    return color, alpha
 end
 
 local function RegisterSettings()
-    ForeverQuestXPDB = ForeverQuestXPDB or {}
+    if not ForeverQuestXPDB then
+        ForeverQuestXPDB = { firstRunPending = true }
+    end
     local category = Settings.RegisterVerticalLayoutCategory(title)
     local setting = Settings.RegisterAddOnSetting(category, "ForeverQuestXP_TrackedOnly", "trackedOnly",
         ForeverQuestXPDB, Settings.VarType.Boolean, "Tracked quests only", false)
     setting:SetValueChangedCallback(QueueQuestRefresh)
-    Settings.CreateCheckbox(category, setting,
+    local trackedOnly = Settings.CreateCheckbox(category, setting,
         "Only preview XP from quests tracked in the objective tracker.")
-    RegisterFillSettings(category, "ready", "Ready to turn in", 0.55)
-    RegisterFillSettings(category, "inProgress", "In progress", 0.40)
-    RegisterSlider(category, "fontSize", "XP bar font size", 12, 8, 24, 1,
+    local readyColor, readyOpacity = RegisterFillSettings(category, "ready", "Ready to turn in", 0.55)
+    local inProgressColor, inProgressOpacity = RegisterFillSettings(category, "inProgress", "In progress", 0.40)
+    local fontSize = RegisterSlider(category, "fontSize", "XP bar font size", 12, 8, 24, 1,
         "Change the size of the text shown on the XP bar.", function(value) return tostring(value) end)
+    settingsControls = { trackedOnly, readyColor, readyOpacity, inProgressColor, inProgressOpacity, fontSize }
     Settings.RegisterAddOnCategory(category)
+end
+
+local function ShowFirstRunPopup()
+    if not ForeverQuestXPDB or not ForeverQuestXPDB.firstRunPending or InCombatLockdown() then return end
+
+    local popup = CreateFrame("Frame", addonName .. "WelcomePopup", UIParent, "BasicFrameTemplateWithInset")
+    popup:SetSize(620, 360)
+    popup:SetPoint("CENTER")
+    popup:SetFrameStrata("HIGH")
+    popup:SetClampedToScreen(true)
+    popup:SetMovable(true)
+    popup:EnableMouse(true)
+    popup.TitleText:SetText(title)
+    tinsert(UISpecialFrames, popup:GetName())
+
+    local titleBar = CreateFrame("Frame", nil, popup)
+    titleBar:SetPoint("TOPLEFT", 0, 0)
+    titleBar:SetPoint("TOPRIGHT", -28, 0)
+    titleBar:SetHeight(22)
+    titleBar:EnableMouse(true)
+    titleBar:RegisterForDrag("LeftButton")
+    titleBar:SetScript("OnDragStart", function() popup:StartMoving() end)
+    titleBar:SetScript("OnDragStop", function() popup:StopMovingOrSizing() end)
+    popup:HookScript("OnHide", function() popup:StopMovingOrSizing() end)
+
+    local description = popup:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    description:SetPoint("TOPLEFT", 24, -44)
+    description:SetPoint("TOPRIGHT", -24, -44)
+    description:SetJustifyH("LEFT")
+    description:SetText("Customize how quest rewards appear on your XP bar. Changes apply immediately.\n"
+        .. "Hover over your XP bar for the quest XP breakdown.")
+
+    for index, initializer in ipairs(settingsControls) do
+        local control = CreateFrame("Frame", nil, popup, initializer:GetTemplate())
+        control:SetPoint("TOPLEFT", 12, -88 - (index - 1) * 34)
+        control:SetPoint("TOPRIGHT", -12, -88 - (index - 1) * 34)
+        -- The Options list normally supplies this accessor through its ScrollBox.
+        control.GetElementData = function() return initializer end
+        control:Init(initializer)
+    end
+
+    local done = CreateFrame("Button", nil, popup, "UIPanelButtonTemplate")
+    done:SetSize(100, 24)
+    done:SetPoint("BOTTOM", 0, 18)
+    done:SetText("Done")
+    done:SetScript("OnClick", function() popup:Hide() end)
+
+    popup:Show()
+    ForeverQuestXPDB.firstRunPending = nil
 end
 
 local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("PLAYER_ENTERING_WORLD")
+events:RegisterEvent("PLAYER_REGEN_ENABLED")
 events:RegisterEvent("PLAYER_XP_UPDATE")
 events:RegisterEvent("PLAYER_LEVEL_UP")
 events:RegisterEvent("QUEST_LOG_UPDATE")
@@ -273,6 +328,11 @@ events:SetScript("OnEvent", function(_, event, arg1)
         end
     elseif event == "PLAYER_ENTERING_WORLD" then
         QueueQuestRefresh()
+        if ForeverQuestXPDB and ForeverQuestXPDB.firstRunPending then
+            C_Timer.After(0, ShowFirstRunPopup)
+        end
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        ShowFirstRunPopup()
     elseif event == "PLAYER_XP_UPDATE" or event == "UPDATE_EXHAUSTION" then
         Refresh()
     elseif ForeverQuestXPDB then
