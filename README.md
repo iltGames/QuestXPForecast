@@ -27,4 +27,4 @@ This installs an independently named **Quest XP Forecast (Dev)** addon with its 
 
 Bump `## Version` in `ForeverQuestXP.toc` and push it to `main`. As with TotemDeck, that change builds an installable ZIP and publishes a GitHub release for the new version. The GitHub push webhook notifies CurseForge, which packages new version tags from the same repository. `.pkgmeta` keeps the install folder named `ForeverQuestXP` and excludes development scripts.
 
-MIT c iltGames
+MIT © iltGames
