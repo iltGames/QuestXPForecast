@@ -6,6 +6,7 @@ Preview quest turn-in XP on the default experience bar in World of Warcraft: For
 - Hover over the bar for the breakdown and how much XP you would still need after turning in those quests.
 - Enable **Tracked quests only** to forecast just the quests on your objective tracker.
 - Customize each fill's color and opacity and the font size in **Options > AddOns > Quest XP Forecast**.
+- Use `/qxfconfig` to reopen the first-time setup window. During combat, it opens when combat ends.
 
 ## Installation
 

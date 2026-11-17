@@ -8,6 +8,7 @@ local refreshQueued
 local atlasInfo
 local defaultColor = "FFDBA540"
 local settingsControls
+local welcomePopup
 
 local function ScanQuestXP()
     local ready, inProgress = 0, 0
@@ -261,7 +262,14 @@ end
 local function ShowFirstRunPopup()
     if not ForeverQuestXPDB or not ForeverQuestXPDB.firstRunPending or InCombatLockdown() then return end
 
+    if welcomePopup then
+        welcomePopup:Show()
+        ForeverQuestXPDB.firstRunPending = nil
+        return
+    end
+
     local popup = CreateFrame("Frame", addonName .. "WelcomePopup", UIParent, "BasicFrameTemplateWithInset")
+    welcomePopup = popup
     popup:SetSize(620, 360)
     popup:SetPoint("CENTER")
     popup:SetFrameStrata("HIGH")
@@ -305,6 +313,13 @@ local function ShowFirstRunPopup()
 
     popup:Show()
     ForeverQuestXPDB.firstRunPending = nil
+end
+
+SLASH_QUESTXPFORECASTCONFIG1 = "/qxfconfig"
+SlashCmdList.QUESTXPFORECASTCONFIG = function()
+    if not ForeverQuestXPDB then return end
+    ForeverQuestXPDB.firstRunPending = true
+    ShowFirstRunPopup()
 end
 
 local events = CreateFrame("Frame")
