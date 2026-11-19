@@ -4,7 +4,7 @@ local previewAtlas = "UI-HUD-ExperienceBar-Fill-ArtifactPower"
 local shapeAtlas = "UI-HUD-ExperienceBar-Fill-Experience"
 local overlays = {}
 local readyXP, inProgressXP = 0, 0
-local refreshQueued
+local questRefreshQueued
 local atlasInfo
 local defaultColor = "FFDBA540"
 local settingsControls
@@ -210,10 +210,10 @@ local function Refresh()
 end
 
 local function QueueQuestRefresh()
-    if refreshQueued then return end
-    refreshQueued = true
+    if questRefreshQueued then return end
+    questRefreshQueued = true
     C_Timer.After(0, function()
-        refreshQueued = false
+        questRefreshQueued = false
         AttachToXPBars()
         ScanQuestXP()
         Refresh()
