@@ -1,4 +1,5 @@
 package-as: ForeverQuestXP
+manual-changelog: CHANGELOG.txt
 
 ignore:
   - scripts

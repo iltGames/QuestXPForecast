@@ -11,7 +11,7 @@ local settingsControls
 local welcomePopup
 
 local function ScanQuestXP()
-    local ready, inProgress = 0, 0
+    local readyTotal, inProgressTotal = 0, 0
     local trackedOnly = ForeverQuestXPDB.trackedOnly
     for index = 1, C_QuestLog.GetNumQuestLogEntries() do
         local entry = C_QuestLog.GetInfo(index)
@@ -21,15 +21,15 @@ local function ScanQuestXP()
                 local reward = GetQuestLogRewardXP(questID)
                 if type(reward) == "number" and (not issecretvalue or not issecretvalue(reward)) and reward > 0 then
                     if C_QuestLog.ReadyForTurnIn(questID) then
-                        ready = ready + reward
+                        readyTotal = readyTotal + reward
                     else
-                        inProgress = inProgress + reward
+                        inProgressTotal = inProgressTotal + reward
                     end
                 end
             end
         end
     end
-    readyXP, inProgressXP = ready, inProgress
+    readyXP, inProgressXP = readyTotal, inProgressTotal
 end
 
 local function SetSegment(texture, bar, width, height, from, to)
