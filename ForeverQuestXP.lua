@@ -1,7 +1,7 @@
 local addonName = ...
 local title = "Quest XP Forecast"
 local questFillAtlas = "UI-HUD-ExperienceBar-Fill-ArtifactPower"
-local shapeAtlas = "UI-HUD-ExperienceBar-Fill-Experience"
+local xpBarMaskAtlas = "UI-HUD-ExperienceBar-Fill-Experience"
 local overlays = {}
 local readyXP, inProgressXP = 0, 0
 local questRefreshQueued
@@ -179,7 +179,7 @@ local function AttachToXPBars()
             local bar = tracker.isExpBar and tracker.StatusBar
             if bar and not overlays[bar] then
                 local mask = bar:CreateMaskTexture()
-                mask:SetAtlas(shapeAtlas)
+                mask:SetAtlas(xpBarMaskAtlas)
                 mask:SetAllPoints(bar)
                 overlays[bar] = {
                     tracker = tracker,
