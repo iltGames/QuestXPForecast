@@ -1,6 +1,6 @@
 local addonName = ...
 local title = "Quest XP Forecast"
-local previewAtlas = "UI-HUD-ExperienceBar-Fill-ArtifactPower"
+local questFillAtlas = "UI-HUD-ExperienceBar-Fill-ArtifactPower"
 local shapeAtlas = "UI-HUD-ExperienceBar-Fill-Experience"
 local overlays = {}
 local readyXP, inProgressXP = 0, 0
@@ -171,7 +171,7 @@ local function AttachToXPBars()
     local manager = StatusTrackingBarManager
     if not manager or not manager.barContainers then return end
 
-    atlasInfo = atlasInfo or C_Texture.GetAtlasInfo(previewAtlas)
+    atlasInfo = atlasInfo or C_Texture.GetAtlasInfo(questFillAtlas)
     if not atlasInfo or not (atlasInfo.file or atlasInfo.filename) then return end
 
     for _, container in ipairs(manager.barContainers) do
