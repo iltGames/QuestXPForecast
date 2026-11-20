@@ -5,7 +5,7 @@ local xpBarMaskAtlas = "UI-HUD-ExperienceBar-Fill-Experience"
 local overlays = {}
 local readyXP, inProgressXP = 0, 0
 local questRefreshQueued
-local atlasInfo
+local questFillAtlasInfo
 local defaultColor = "FFDBA540"
 local settingsControls
 local welcomePopup
@@ -39,9 +39,9 @@ local function SetSegment(texture, bar, width, height, from, to)
     end
 
     -- Sample the portion of Blizzard's fill that corresponds to this XP range.
-    local left, right = atlasInfo.leftTexCoord, atlasInfo.rightTexCoord
+    local left, right = questFillAtlasInfo.leftTexCoord, questFillAtlasInfo.rightTexCoord
     texture:SetTexCoord(left + (right - left) * from, left + (right - left) * to,
-        atlasInfo.topTexCoord, atlasInfo.bottomTexCoord)
+        questFillAtlasInfo.topTexCoord, questFillAtlasInfo.bottomTexCoord)
     texture:SetPoint("TOPLEFT", bar, "TOPLEFT", width * from, 0)
     texture:SetSize(width * (to - from), height)
     texture:Show()
@@ -67,7 +67,7 @@ end
 
 local function CreateSegment(bar, mask)
     local texture = bar:CreateTexture(nil, "ARTWORK", nil, -1)
-    texture:SetTexture(atlasInfo.file or atlasInfo.filename)
+    texture:SetTexture(questFillAtlasInfo.file or questFillAtlasInfo.filename)
     texture:AddMaskTexture(mask)
     texture:Hide()
     return texture
@@ -171,8 +171,8 @@ local function AttachToXPBars()
     local manager = StatusTrackingBarManager
     if not manager or not manager.barContainers then return end
 
-    atlasInfo = atlasInfo or C_Texture.GetAtlasInfo(questFillAtlas)
-    if not atlasInfo or not (atlasInfo.file or atlasInfo.filename) then return end
+    questFillAtlasInfo = questFillAtlasInfo or C_Texture.GetAtlasInfo(questFillAtlas)
+    if not questFillAtlasInfo or not (questFillAtlasInfo.file or questFillAtlasInfo.filename) then return end
 
     for _, container in ipairs(manager.barContainers) do
         for _, tracker in pairs(container.bars or {}) do
