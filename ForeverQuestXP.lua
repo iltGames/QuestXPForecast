@@ -6,7 +6,7 @@ local overlays = {}
 local readyXP, inProgressXP = 0, 0
 local questRefreshQueued
 local questFillAtlasInfo
-local defaultColor = "FFDBA540"
+local defaultFillColor = "FFDBA540"
 local settingsControls
 local welcomePopup
 
@@ -76,7 +76,7 @@ end
 local function ApplyFillAppearance(texture, colorKey, opacityKey, brightness)
     local color = ForeverQuestXPDB[colorKey]
     local r, g, b = brightness, brightness, brightness
-    local customColor = color ~= defaultColor
+    local customColor = color ~= defaultFillColor
     if customColor then
         r, g, b = CreateColorFromHexString(color):GetRGB()
     end
@@ -232,7 +232,7 @@ end
 local function RegisterFillSettings(category, key, label, opacity)
     local colorKey = key .. "Color"
     local setting = Settings.RegisterAddOnSetting(category, addonName .. "_" .. colorKey, colorKey,
-        ForeverQuestXPDB, Settings.VarType.String, label .. " color", defaultColor)
+        ForeverQuestXPDB, Settings.VarType.String, label .. " color", defaultFillColor)
     setting:SetValueChangedCallback(RefreshAppearance)
     local color = Settings.CreateColorSwatch(category, setting, "Choose the color of this quest XP fill.")
     local alpha = RegisterSlider(category, key .. "Opacity", label .. " opacity", opacity, 0, 1, 0.05,
