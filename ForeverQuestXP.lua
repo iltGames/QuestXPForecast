@@ -65,7 +65,7 @@ local function UpdateOverlay(bar)
     SetQuestFillSegment(overlay.inProgress, bar, width, height, ready, total)
 end
 
-local function CreateSegment(bar, mask)
+local function CreateQuestFillTexture(bar, mask)
     local texture = bar:CreateTexture(nil, "ARTWORK", nil, -1)
     texture:SetTexture(questFillAtlasInfo.file or questFillAtlasInfo.filename)
     texture:AddMaskTexture(mask)
@@ -183,8 +183,8 @@ local function AttachToXPBars()
                 mask:SetAllPoints(bar)
                 overlaysByBar[bar] = {
                     tracker = tracker,
-                    ready = CreateSegment(bar, mask),
-                    inProgress = CreateSegment(bar, mask),
+                    ready = CreateQuestFillTexture(bar, mask),
+                    inProgress = CreateQuestFillTexture(bar, mask),
                 }
                 bar:HookScript("OnSizeChanged", UpdateOverlay)
                 bar:HookScript("OnShow", UpdateOverlay)
