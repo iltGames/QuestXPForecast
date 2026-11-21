@@ -1,1 +1,1 @@
-Code improvements
+Clarified the name of the helper that positions quest XP segments on the bar.

@@ -32,7 +32,7 @@ local function ScanQuestXP()
     readyXP, inProgressXP = readyTotal, inProgressTotal
 end
 
-local function SetSegment(texture, bar, width, height, from, to)
+local function SetQuestFillSegment(texture, bar, width, height, from, to)
     if to <= from then
         texture:Hide()
         return
@@ -61,8 +61,8 @@ local function UpdateOverlay(bar)
     local current = math.min(1, UnitXP("player") / maximum)
     local ready = math.min(1, current + readyXP / maximum)
     local total = math.min(1, ready + inProgressXP / maximum)
-    SetSegment(overlay.ready, bar, width, height, current, ready)
-    SetSegment(overlay.inProgress, bar, width, height, ready, total)
+    SetQuestFillSegment(overlay.ready, bar, width, height, current, ready)
+    SetQuestFillSegment(overlay.inProgress, bar, width, height, ready, total)
 end
 
 local function CreateSegment(bar, mask)
