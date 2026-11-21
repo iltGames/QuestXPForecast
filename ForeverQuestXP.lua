@@ -2,7 +2,7 @@ local addonName = ...
 local title = "Quest XP Forecast"
 local questFillAtlas = "UI-HUD-ExperienceBar-Fill-ArtifactPower"
 local xpBarMaskAtlas = "UI-HUD-ExperienceBar-Fill-Experience"
-local overlays = {}
+local overlaysByBar = {}
 local readyXP, inProgressXP = 0, 0
 local questRefreshQueued
 local questFillAtlasInfo
@@ -48,7 +48,7 @@ local function SetSegment(texture, bar, width, height, from, to)
 end
 
 local function UpdateOverlay(bar)
-    local overlay = overlays[bar]
+    local overlay = overlaysByBar[bar]
     local maximum = UnitXPMax("player")
     local width, height = bar:GetSize()
     if not maximum or maximum <= 0 or width <= 0 or height <= 0
@@ -100,7 +100,7 @@ local function ApplyAppearance(overlay)
 end
 
 local function RefreshAppearance()
-    for _, overlay in pairs(overlays) do
+    for _, overlay in pairs(overlaysByBar) do
         ApplyAppearance(overlay)
     end
 end
@@ -177,11 +177,11 @@ local function AttachToXPBars()
     for _, container in ipairs(manager.barContainers) do
         for _, tracker in pairs(container.bars or {}) do
             local bar = tracker.isExpBar and tracker.StatusBar
-            if bar and not overlays[bar] then
+            if bar and not overlaysByBar[bar] then
                 local mask = bar:CreateMaskTexture()
                 mask:SetAtlas(xpBarMaskAtlas)
                 mask:SetAllPoints(bar)
-                overlays[bar] = {
+                overlaysByBar[bar] = {
                     tracker = tracker,
                     ready = CreateSegment(bar, mask),
                     inProgress = CreateSegment(bar, mask),
@@ -189,14 +189,14 @@ local function AttachToXPBars()
                 bar:HookScript("OnSizeChanged", UpdateOverlay)
                 bar:HookScript("OnShow", UpdateOverlay)
                 HookXPDetails(tracker)
-                ApplyAppearance(overlays[bar])
+                ApplyAppearance(overlaysByBar[bar])
             end
         end
     end
 end
 
 local function Refresh()
-    for bar, overlay in pairs(overlays) do
+    for bar, overlay in pairs(overlaysByBar) do
         UpdateOverlay(bar)
         local tracker = overlay.tracker
         tracker:UpdateCurrentText()
