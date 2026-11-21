@@ -7,7 +7,7 @@ local readyXP, inProgressXP = 0, 0
 local questRefreshQueued
 local questFillAtlasInfo
 local defaultFillColor = "FFDBA540"
-local settingsControls
+local setupControlInitializers
 local welcomePopup
 
 local function ScanQuestXP()
@@ -255,7 +255,7 @@ local function RegisterSettings()
     local inProgressColor, inProgressOpacity = RegisterFillSettings(category, "inProgress", "In progress", 0.40)
     local fontSize = RegisterSlider(category, "fontSize", "XP bar font size", 12, 8, 24, 1,
         "Change the size of the text shown on the XP bar.", function(value) return tostring(value) end)
-    settingsControls = { trackedOnly, readyColor, readyOpacity, inProgressColor, inProgressOpacity, fontSize }
+    setupControlInitializers = { trackedOnly, readyColor, readyOpacity, inProgressColor, inProgressOpacity, fontSize }
     Settings.RegisterAddOnCategory(category)
 end
 
@@ -296,7 +296,7 @@ local function ShowFirstRunPopup()
     description:SetText("Customize how quest rewards appear on your XP bar. Changes apply immediately.\n"
         .. "Hover over your XP bar for the quest XP breakdown.")
 
-    for index, initializer in ipairs(settingsControls) do
+    for index, initializer in ipairs(setupControlInitializers) do
         local control = CreateFrame("Frame", nil, popup, initializer:GetTemplate())
         control:SetPoint("TOPLEFT", 12, -88 - (index - 1) * 34)
         control:SetPoint("TOPRIGHT", -12, -88 - (index - 1) * 34)
