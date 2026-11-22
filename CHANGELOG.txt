@@ -1,1 +1,1 @@
-Renamed the shared rested XP helper to make clear that it returns a formatted value for display.
+Named the settings callback after the XP bar overlays it refreshes.

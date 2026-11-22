@@ -99,7 +99,7 @@ local function ApplyAppearance(overlay)
     end
 end
 
-local function RefreshAppearance()
+local function RefreshOverlayAppearance()
     for _, overlay in pairs(overlaysByBar) do
         ApplyAppearance(overlay)
     end
@@ -223,7 +223,7 @@ end
 local function RegisterSlider(category, key, label, default, minimum, maximum, step, tooltip, formatValue)
     local setting = Settings.RegisterAddOnSetting(category, addonName .. "_" .. key, key,
         ForeverQuestXPDB, Settings.VarType.Number, label, default)
-    setting:SetValueChangedCallback(RefreshAppearance)
+    setting:SetValueChangedCallback(RefreshOverlayAppearance)
     local options = Settings.CreateSliderOptions(minimum, maximum, step)
     options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, formatValue)
     return Settings.CreateSlider(category, setting, options, tooltip)
@@ -233,7 +233,7 @@ local function RegisterFillSettings(category, key, label, opacity)
     local colorKey = key .. "Color"
     local setting = Settings.RegisterAddOnSetting(category, addonName .. "_" .. colorKey, colorKey,
         ForeverQuestXPDB, Settings.VarType.String, label .. " color", defaultFillColor)
-    setting:SetValueChangedCallback(RefreshAppearance)
+    setting:SetValueChangedCallback(RefreshOverlayAppearance)
     local color = Settings.CreateColorSwatch(category, setting, "Choose the color of this quest XP fill.")
     local alpha = RegisterSlider(category, key .. "Opacity", label .. " opacity", opacity, 0, 1, 0.05,
         "Adjust how much of the default XP bar shows through this fill.",
