@@ -155,7 +155,7 @@ local function AppendQuestTooltip(tracker)
     tooltip:Show()
 end
 
-local function HookXPDetails(tracker)
+local function HookXPBarTextAndTooltip(tracker)
     hooksecurefunc(tracker, "UpdateCurrentText", UpdateXPText)
 
     local tick = tracker.ExhaustionTick
@@ -188,7 +188,7 @@ local function AttachToXPBars()
                 }
                 bar:HookScript("OnSizeChanged", UpdateOverlay)
                 bar:HookScript("OnShow", UpdateOverlay)
-                HookXPDetails(tracker)
+                HookXPBarTextAndTooltip(tracker)
                 ApplyAppearance(overlaysByBar[bar])
             end
         end

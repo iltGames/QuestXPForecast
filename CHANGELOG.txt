@@ -1,1 +1,1 @@
-Renamed the helper that creates the ready and in-progress quest XP textures.
+Made the XP bar setup code clearer by naming its text and tooltip hooks explicitly.
