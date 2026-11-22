@@ -105,7 +105,7 @@ local function RefreshAppearance()
     end
 end
 
-local function GetXPRemaining(tracker)
+local function GetXPToNextLevel(tracker)
     local maximum = UnitXPMax("player")
     if not maximum or maximum <= 0
         or (IsXPUserDisabled and IsXPUserDisabled())
@@ -123,7 +123,7 @@ local function GetRestedXPText()
 end
 
 local function UpdateXPText(tracker)
-    local remaining = GetXPRemaining(tracker)
+    local remaining = GetXPToNextLevel(tracker)
     if not remaining then return end
 
     local text = ("%s  -  %s XP to level  -  %s quest XP"):format(
@@ -138,7 +138,7 @@ end
 
 local function AppendQuestTooltip(tracker)
     local tooltip = GetAppropriateTooltip()
-    local remaining = GetXPRemaining(tracker)
+    local remaining = GetXPToNextLevel(tracker)
     if not remaining or not tooltip:IsShown() then return end
 
     local total = readyXP + inProgressXP

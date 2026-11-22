@@ -1,1 +1,1 @@
-Made the XP bar setup code clearer by naming its text and tooltip hooks explicitly.
+Clarified the name of the helper that calculates XP needed for the next level.
