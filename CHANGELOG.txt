@@ -1,1 +1,1 @@
-Clarified the name of the helper that calculates XP needed for the next level.
+Renamed the shared rested XP helper to make clear that it returns a formatted value for display.
