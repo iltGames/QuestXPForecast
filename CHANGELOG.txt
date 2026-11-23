@@ -1,1 +1,1 @@
-Renamed the setup popup helper to reflect its use at first launch and through /qxfconfig.
+Named the start and end parameters to show that they represent fractions of the XP bar.

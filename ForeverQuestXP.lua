@@ -32,18 +32,18 @@ local function ScanQuestXP()
     readyXP, inProgressXP = readyTotal, inProgressTotal
 end
 
-local function SetQuestFillSegment(texture, bar, width, height, from, to)
-    if to <= from then
+local function SetQuestFillSegment(texture, bar, width, height, startFraction, endFraction)
+    if endFraction <= startFraction then
         texture:Hide()
         return
     end
 
     -- Sample the portion of Blizzard's fill that corresponds to this XP range.
     local left, right = questFillAtlasInfo.leftTexCoord, questFillAtlasInfo.rightTexCoord
-    texture:SetTexCoord(left + (right - left) * from, left + (right - left) * to,
+    texture:SetTexCoord(left + (right - left) * startFraction, left + (right - left) * endFraction,
         questFillAtlasInfo.topTexCoord, questFillAtlasInfo.bottomTexCoord)
-    texture:SetPoint("TOPLEFT", bar, "TOPLEFT", width * from, 0)
-    texture:SetSize(width * (to - from), height)
+    texture:SetPoint("TOPLEFT", bar, "TOPLEFT", width * startFraction, 0)
+    texture:SetSize(width * (endFraction - startFraction), height)
     texture:Show()
 end
 
