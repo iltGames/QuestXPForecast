@@ -195,7 +195,7 @@ local function AttachToXPBars()
     end
 end
 
-local function Refresh()
+local function RefreshXPBars()
     for bar, overlay in pairs(overlaysByBar) do
         UpdateOverlay(bar)
         local tracker = overlay.tracker
@@ -216,7 +216,7 @@ local function QueueQuestRefresh()
         questRefreshQueued = false
         AttachToXPBars()
         ScanQuestXP()
-        Refresh()
+        RefreshXPBars()
     end)
 end
 
@@ -349,7 +349,7 @@ events:SetScript("OnEvent", function(_, event, arg1)
     elseif event == "PLAYER_REGEN_ENABLED" then
         ShowFirstRunPopup()
     elseif event == "PLAYER_XP_UPDATE" or event == "UPDATE_EXHAUSTION" then
-        Refresh()
+        RefreshXPBars()
     elseif ForeverQuestXPDB then
         QueueQuestRefresh()
     end

@@ -1,1 +1,1 @@
-Named the settings callback after the XP bar overlays it refreshes.
+Clarified which helper refreshes the XP bars after quest or XP updates.
