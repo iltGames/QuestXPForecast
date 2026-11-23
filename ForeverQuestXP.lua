@@ -259,7 +259,7 @@ local function RegisterSettings()
     Settings.RegisterAddOnCategory(category)
 end
 
-local function ShowFirstRunPopup()
+local function ShowPendingSetupPopup()
     if not ForeverQuestXPDB or not ForeverQuestXPDB.firstRunPending or InCombatLockdown() then return end
 
     if welcomePopup then
@@ -319,7 +319,7 @@ SLASH_QUESTXPFORECASTCONFIG1 = "/qxfconfig"
 SlashCmdList.QUESTXPFORECASTCONFIG = function()
     if not ForeverQuestXPDB then return end
     ForeverQuestXPDB.firstRunPending = true
-    ShowFirstRunPopup()
+    ShowPendingSetupPopup()
 end
 
 local events = CreateFrame("Frame")
@@ -344,10 +344,10 @@ events:SetScript("OnEvent", function(_, event, arg1)
     elseif event == "PLAYER_ENTERING_WORLD" then
         QueueQuestRefresh()
         if ForeverQuestXPDB and ForeverQuestXPDB.firstRunPending then
-            C_Timer.After(0, ShowFirstRunPopup)
+            C_Timer.After(0, ShowPendingSetupPopup)
         end
     elseif event == "PLAYER_REGEN_ENABLED" then
-        ShowFirstRunPopup()
+        ShowPendingSetupPopup()
     elseif event == "PLAYER_XP_UPDATE" or event == "UPDATE_EXHAUSTION" then
         RefreshXPBars()
     elseif ForeverQuestXPDB then

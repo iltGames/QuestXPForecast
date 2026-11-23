@@ -1,1 +1,1 @@
-Clarified which helper refreshes the XP bars after quest or XP updates.
+Renamed the setup popup helper to reflect its use at first launch and through /qxfconfig.
