@@ -84,7 +84,7 @@ local function ApplyFillAppearance(texture, colorKey, opacityKey, brightness)
     texture:SetVertexColor(r, g, b, ForeverQuestXPDB[opacityKey])
 end
 
-local function ApplyAppearance(overlay)
+local function ApplyOverlayAppearance(overlay)
     ApplyFillAppearance(overlay.ready, "readyColor", "readyOpacity", 0.8)
     ApplyFillAppearance(overlay.inProgress, "inProgressColor", "inProgressOpacity", 0.55)
 
@@ -101,7 +101,7 @@ end
 
 local function RefreshOverlayAppearance()
     for _, overlay in pairs(overlaysByBar) do
-        ApplyAppearance(overlay)
+        ApplyOverlayAppearance(overlay)
     end
 end
 
@@ -189,7 +189,7 @@ local function AttachToXPBars()
                 bar:HookScript("OnSizeChanged", UpdateOverlay)
                 bar:HookScript("OnShow", UpdateOverlay)
                 HookXPBarTextAndTooltip(tracker)
-                ApplyAppearance(overlaysByBar[bar])
+                ApplyOverlayAppearance(overlaysByBar[bar])
             end
         end
     end

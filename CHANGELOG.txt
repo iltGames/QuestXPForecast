@@ -1,1 +1,1 @@
-Named the start and end parameters to show that they represent fractions of the XP bar.
+Renamed the helper that applies appearance settings to an individual XP bar overlay.
