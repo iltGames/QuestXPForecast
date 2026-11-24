@@ -229,7 +229,7 @@ local function RegisterAppearanceSlider(category, key, label, default, minimum, 
     return Settings.CreateSlider(category, setting, options, tooltip)
 end
 
-local function RegisterFillSettings(category, key, label, opacity)
+local function RegisterQuestFillSettings(category, key, label, opacity)
     local colorKey = key .. "Color"
     local setting = Settings.RegisterAddOnSetting(category, addonName .. "_" .. colorKey, colorKey,
         ForeverQuestXPDB, Settings.VarType.String, label .. " color", defaultFillColor)
@@ -251,8 +251,8 @@ local function RegisterSettings()
     setting:SetValueChangedCallback(QueueQuestRefresh)
     local trackedOnly = Settings.CreateCheckbox(category, setting,
         "Only preview XP from quests tracked in the objective tracker.")
-    local readyColor, readyOpacity = RegisterFillSettings(category, "ready", "Ready to turn in", 0.55)
-    local inProgressColor, inProgressOpacity = RegisterFillSettings(category, "inProgress", "In progress", 0.40)
+    local readyColor, readyOpacity = RegisterQuestFillSettings(category, "ready", "Ready to turn in", 0.55)
+    local inProgressColor, inProgressOpacity = RegisterQuestFillSettings(category, "inProgress", "In progress", 0.40)
     local fontSize = RegisterAppearanceSlider(category, "fontSize", "XP bar font size", 12, 8, 24, 1,
         "Change the size of the text shown on the XP bar.", function(value) return tostring(value) end)
     setupControlInitializers = { trackedOnly, readyColor, readyOpacity, inProgressColor, inProgressOpacity, fontSize }

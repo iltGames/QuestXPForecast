@@ -1,1 +1,1 @@
-Renamed the helper that adds the quest XP breakdown to the bar tooltip.
+Gave the helper that registers quest fill colors and opacity a more specific name.
