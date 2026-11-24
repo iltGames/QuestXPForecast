@@ -136,7 +136,7 @@ local function UpdateXPBarText(tracker)
     tracker:SetBarText(text)
 end
 
-local function AppendQuestTooltip(tracker)
+local function AppendQuestXPDetails(tracker)
     local tooltip = GetAppropriateTooltip()
     local remaining = GetXPToNextLevel(tracker)
     if not remaining or not tooltip:IsShown() then return end
@@ -162,7 +162,7 @@ local function HookXPBarTextAndTooltip(tracker)
     if tick and tick.ExhaustionToolTipText then
         -- Blizzard uses this method for both the bar and the rested XP marker.
         hooksecurefunc(tick, "ExhaustionToolTipText", function()
-            AppendQuestTooltip(tracker)
+            AppendQuestXPDetails(tracker)
         end)
     end
 end

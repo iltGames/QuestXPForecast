@@ -1,1 +1,1 @@
-The XP text callback now has a name that identifies the bar label it updates.
+Renamed the helper that adds the quest XP breakdown to the bar tooltip.
