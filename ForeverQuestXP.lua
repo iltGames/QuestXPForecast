@@ -220,7 +220,7 @@ local function QueueQuestRefresh()
     end)
 end
 
-local function RegisterSlider(category, key, label, default, minimum, maximum, step, tooltip, formatValue)
+local function RegisterAppearanceSlider(category, key, label, default, minimum, maximum, step, tooltip, formatValue)
     local setting = Settings.RegisterAddOnSetting(category, addonName .. "_" .. key, key,
         ForeverQuestXPDB, Settings.VarType.Number, label, default)
     setting:SetValueChangedCallback(RefreshOverlayAppearance)
@@ -235,7 +235,7 @@ local function RegisterFillSettings(category, key, label, opacity)
         ForeverQuestXPDB, Settings.VarType.String, label .. " color", defaultFillColor)
     setting:SetValueChangedCallback(RefreshOverlayAppearance)
     local color = Settings.CreateColorSwatch(category, setting, "Choose the color of this quest XP fill.")
-    local alpha = RegisterSlider(category, key .. "Opacity", label .. " opacity", opacity, 0, 1, 0.05,
+    local alpha = RegisterAppearanceSlider(category, key .. "Opacity", label .. " opacity", opacity, 0, 1, 0.05,
         "Adjust how much of the default XP bar shows through this fill.",
         function(value) return ("%d%%"):format(math.floor(value * 100 + 0.5)) end)
     return color, alpha
@@ -253,7 +253,7 @@ local function RegisterSettings()
         "Only preview XP from quests tracked in the objective tracker.")
     local readyColor, readyOpacity = RegisterFillSettings(category, "ready", "Ready to turn in", 0.55)
     local inProgressColor, inProgressOpacity = RegisterFillSettings(category, "inProgress", "In progress", 0.40)
-    local fontSize = RegisterSlider(category, "fontSize", "XP bar font size", 12, 8, 24, 1,
+    local fontSize = RegisterAppearanceSlider(category, "fontSize", "XP bar font size", 12, 8, 24, 1,
         "Change the size of the text shown on the XP bar.", function(value) return tostring(value) end)
     setupControlInitializers = { trackedOnly, readyColor, readyOpacity, inProgressColor, inProgressOpacity, fontSize }
     Settings.RegisterAddOnCategory(category)
