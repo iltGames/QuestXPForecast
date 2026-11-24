@@ -1,1 +1,1 @@
-Gave the helper shared by the opacity and font-size sliders a more specific name.
+Renamed the callback that updates the quest XP fills when the bar is shown or resized.

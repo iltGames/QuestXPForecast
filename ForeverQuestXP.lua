@@ -47,7 +47,7 @@ local function SetQuestFillSegment(texture, bar, width, height, startFraction, e
     texture:Show()
 end
 
-local function UpdateOverlay(bar)
+local function UpdateQuestFillOverlay(bar)
     local overlay = overlaysByBar[bar]
     local maximum = UnitXPMax("player")
     local width, height = bar:GetSize()
@@ -186,8 +186,8 @@ local function AttachToXPBars()
                     ready = CreateQuestFillTexture(bar, mask),
                     inProgress = CreateQuestFillTexture(bar, mask),
                 }
-                bar:HookScript("OnSizeChanged", UpdateOverlay)
-                bar:HookScript("OnShow", UpdateOverlay)
+                bar:HookScript("OnSizeChanged", UpdateQuestFillOverlay)
+                bar:HookScript("OnShow", UpdateQuestFillOverlay)
                 HookXPBarTextAndTooltip(tracker)
                 ApplyOverlayAppearance(overlaysByBar[bar])
             end
@@ -197,7 +197,7 @@ end
 
 local function RefreshXPBars()
     for bar, overlay in pairs(overlaysByBar) do
-        UpdateOverlay(bar)
+        UpdateQuestFillOverlay(bar)
         local tracker = overlay.tracker
         tracker:UpdateCurrentText()
 
