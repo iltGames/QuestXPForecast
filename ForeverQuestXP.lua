@@ -122,7 +122,7 @@ local function GetFormattedRestedXP()
     end
 end
 
-local function UpdateXPText(tracker)
+local function UpdateXPBarText(tracker)
     local remaining = GetXPToNextLevel(tracker)
     if not remaining then return end
 
@@ -156,7 +156,7 @@ local function AppendQuestTooltip(tracker)
 end
 
 local function HookXPBarTextAndTooltip(tracker)
-    hooksecurefunc(tracker, "UpdateCurrentText", UpdateXPText)
+    hooksecurefunc(tracker, "UpdateCurrentText", UpdateXPBarText)
 
     local tick = tracker.ExhaustionTick
     if tick and tick.ExhaustionToolTipText then

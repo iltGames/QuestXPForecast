@@ -1,1 +1,1 @@
-Renamed the callback that updates the quest XP fills when the bar is shown or resized.
+The XP text callback now has a name that identifies the bar label it updates.
