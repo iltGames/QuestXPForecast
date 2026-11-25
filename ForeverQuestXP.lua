@@ -6,6 +6,14 @@ local overlaysByBar = {}
 local readyXP, inProgressXP = 0, 0
 local xpBarRefreshQueued, questScanPending
 local sessionStartedAt, sessionXP = nil, 0
+local recentKillXP = {}
+local killXPMaxSamples, killXPMaxAge = 20, 20 * 60
+-- Rested, group, and raid messages append their adjustments after the XP awarded.
+local killXPPattern = COMBATLOG_XPGAIN_FIRSTPERSON and "^" .. COMBATLOG_XPGAIN_FIRSTPERSON
+    :gsub("%%[12]%$([sd])", "%%%1")
+    :gsub("([%%%^%$%(%)%.%[%]%*%+%-%?])", "%%%1")
+    :gsub("%%%%s", ".-")
+    :gsub("%%%%d", "([%%d][%%d.,]*)")
 local lastLevel, lastXP, lastXPMax
 local xpRateTicker
 local timeToLevelFormatter = CreateAndInitFromMixin(SecondsFormatterMixin, 0, SecondsFormatter.Abbreviation.Truncate)
@@ -149,8 +157,34 @@ local function GetSessionXPPerHour()
     return elapsed > 0 and sessionXP * 3600 / elapsed or 0
 end
 
-local function FormatXPPerHour(xpPerHour)
-    return BreakUpLargeNumbers(math.floor(xpPerHour + 0.5))
+local function RecordKillXP(message)
+    if not killXPPattern or (issecretvalue and issecretvalue(message)) or type(message) ~= "string" then return end
+
+    local amount = message:match(killXPPattern)
+    local xp = amount and tonumber((amount:gsub("[.,]", "")))
+    if not xp or xp <= 0 then return end
+
+    recentKillXP[#recentKillXP + 1] = { xp = xp, at = GetTime() }
+    if #recentKillXP > killXPMaxSamples then
+        table.remove(recentKillXP, 1)
+    end
+    return true
+end
+
+local function GetAverageKillXP()
+    local cutoff = GetTime() - killXPMaxAge
+    local total, count = 0, 0
+    for index = #recentKillXP, 1, -1 do
+        local kill = recentKillXP[index]
+        if kill.at < cutoff then break end
+        total = total + kill.xp
+        count = count + 1
+    end
+    if count > 0 then return total / count end
+end
+
+local function FormatRoundedXP(xp)
+    return BreakUpLargeNumbers(math.floor(xp + 0.5))
 end
 
 local function UpdateXPBarText(tracker, hovering)
@@ -168,7 +202,7 @@ local function UpdateXPBarText(tracker, hovering)
         hovering = tracker:IsMouseMotionFocus()
     end
     if hovering or ForeverQuestXPDB.alwaysShowXPText then
-        text = text .. "  -  " .. FormatXPPerHour(GetSessionXPPerHour()) .. " XP/hr"
+        text = text .. "  -  " .. FormatRoundedXP(GetSessionXPPerHour()) .. " XP/hr"
     end
     tracker:SetBarText(text)
 end
@@ -210,10 +244,13 @@ local function AppendQuestXPDetails(tracker)
         BreakUpLargeNumbers(math.max(0, remaining - readyXP - inProgressXP)) .. " XP", 1, 0.82, 0, 1, 1, 1)
 
     local xpPerHour = GetSessionXPPerHour()
+    local avgKillXP = GetAverageKillXP()
     local timeToLevel = xpPerHour > 0 and timeToLevelFormatter:Format(remaining * 3600 / xpPerHour) or "Not enough data"
     GameTooltip_AddBlankLineToTooltip(tooltip)
     GameTooltip_AddNormalLine(tooltip, "Session")
-    tooltip:AddDoubleLine("Session XP per hour", FormatXPPerHour(xpPerHour) .. " XP", 1, 0.82, 0, 1, 1, 1)
+    tooltip:AddDoubleLine("Session XP per hour", FormatRoundedXP(xpPerHour) .. " XP", 1, 0.82, 0, 1, 1, 1)
+    tooltip:AddDoubleLine("Avg XP per kill", avgKillXP and FormatRoundedXP(avgKillXP) .. " XP" or "Not enough data",
+        1, 0.82, 0, 1, 1, 1)
     tooltip:AddDoubleLine("Time to level", timeToLevel, 1, 0.82, 0, 1, 1, 1)
     tooltip:Show()
 end
@@ -446,6 +483,7 @@ events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("PLAYER_ENTERING_WORLD")
 events:RegisterEvent("PLAYER_REGEN_ENABLED")
 events:RegisterEvent("PLAYER_XP_UPDATE")
+events:RegisterEvent("CHAT_MSG_COMBAT_XP_GAIN")
 events:RegisterEvent("PLAYER_LEVEL_UP")
 events:RegisterEvent("QUEST_LOG_UPDATE")
 events:RegisterEvent("QUEST_WATCH_LIST_CHANGED")
@@ -469,6 +507,10 @@ events:SetScript("OnEvent", function(_, event, arg1)
         ShowPendingSetupPopup()
     elseif event == "PLAYER_XP_UPDATE" then
         if arg1 == "player" then
+            QueueXPBarRefresh()
+        end
+    elseif event == "CHAT_MSG_COMBAT_XP_GAIN" then
+        if RecordKillXP(arg1) then
             QueueXPBarRefresh()
         end
     elseif event == "UPDATE_EXHAUSTION" then
