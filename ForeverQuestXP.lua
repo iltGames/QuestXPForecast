@@ -167,7 +167,7 @@ local function HookXPBarTextAndTooltip(tracker)
     end
 end
 
-local function AttachToXPBars()
+local function AttachQuestOverlays()
     local manager = StatusTrackingBarManager
     if not manager or not manager.barContainers then return end
 
@@ -214,7 +214,7 @@ local function QueueQuestRefresh()
     questRefreshQueued = true
     C_Timer.After(0, function()
         questRefreshQueued = false
-        AttachToXPBars()
+        AttachQuestOverlays()
         UpdateQuestXPTotals()
         RefreshXPBars()
     end)

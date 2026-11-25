@@ -1,1 +1,1 @@
-Named the quest log scan after the ready and in-progress XP totals it updates.
+Clarified the name of the helper that attaches quest overlays to the XP bars.
