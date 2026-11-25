@@ -4,7 +4,11 @@ local questFillAtlas = "UI-HUD-ExperienceBar-Fill-ArtifactPower"
 local xpBarMaskAtlas = "UI-HUD-ExperienceBar-Fill-Experience"
 local overlaysByBar = {}
 local readyXP, inProgressXP = 0, 0
-local questRefreshQueued
+local xpBarRefreshQueued, questScanPending
+local sessionStartedAt, sessionXP = nil, 0
+local lastLevel, lastXP, lastXPMax
+local xpRateTicker
+local timeToLevelFormatter = CreateAndInitFromMixin(SecondsFormatterMixin, 0, SecondsFormatter.Abbreviation.Truncate)
 local questFillAtlasInfo
 local defaultFillColor = "FFDBA540"
 local setupControlInitializers
@@ -122,7 +126,34 @@ local function GetFormattedRestedXP()
     end
 end
 
-local function UpdateXPBarText(tracker)
+local function RecordSessionXP()
+    local level = UnitLevel("player")
+    local xp = UnitXP("player")
+    local xpMax = UnitXPMax("player")
+    if level <= 0 or not xpMax or xpMax <= 0 then return end
+
+    if not sessionStartedAt then
+        sessionStartedAt = GetTime()
+    elseif level > lastLevel then
+        -- Count the XP to finish the previous level and the XP carried into this one.
+        sessionXP = sessionXP + math.max(0, lastXPMax - lastXP) + xp
+    elseif level == lastLevel then
+        if xp < lastXP then return end -- The XP counter can roll over before the level updates.
+        sessionXP = sessionXP + xp - lastXP
+    end
+    lastLevel, lastXP, lastXPMax = level, xp, xpMax
+end
+
+local function GetSessionXPPerHour()
+    local elapsed = sessionStartedAt and (GetTime() - sessionStartedAt) or 0
+    return elapsed > 0 and sessionXP * 3600 / elapsed or 0
+end
+
+local function FormatXPPerHour(xpPerHour)
+    return BreakUpLargeNumbers(math.floor(xpPerHour + 0.5))
+end
+
+local function UpdateXPBarText(tracker, hovering)
     local remaining = GetXPToNextLevel(tracker)
     if not remaining then return end
 
@@ -133,7 +164,36 @@ local function UpdateXPBarText(tracker)
     if restedXP then
         text = text .. "  -  " .. restedXP .. " rested XP"
     end
+    if hovering == nil then
+        hovering = tracker:IsMouseMotionFocus()
+    end
+    if hovering or ForeverQuestXPDB.alwaysShowXPText then
+        text = text .. "  -  " .. FormatXPPerHour(GetSessionXPPerHour()) .. " XP/hr"
+    end
     tracker:SetBarText(text)
+end
+
+local function AddRestedXPToTooltip(tooltip)
+    local restedXP = GetFormattedRestedXP()
+    if not restedXP then return end
+
+    local restState, restName, restMultiplier = GetRestState()
+    if tooltip.GetLeftLine and restState and restName and restMultiplier then
+        local nativeText = EXHAUST_TOOLTIP1:format(restName, restMultiplier * 100)
+        for index = 2, tooltip:NumLines() do
+            local line = tooltip:GetLeftLine(index)
+            if line and line:GetText() == nativeText then
+                local heading, description = nativeText:match("^([^\n]+)\n(.+)$")
+                if restState == 1 and heading and heading:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") == restName then
+                    nativeText = description
+                end
+                line:SetText(("|cffffd200Rested XP:|r %s XP\n%s"):format(restedXP, nativeText))
+                return
+            end
+        end
+    end
+
+    tooltip:AddDoubleLine("Rested XP", restedXP .. " XP", 1, 0.82, 0, 1, 1, 1)
 end
 
 local function AppendQuestXPDetails(tracker)
@@ -141,22 +201,39 @@ local function AppendQuestXPDetails(tracker)
     local remaining = GetXPToNextLevel(tracker)
     if not remaining or not tooltip:IsShown() then return end
 
-    local total = readyXP + inProgressXP
-    local totalLabel = ForeverQuestXPDB.trackedOnly and "Tracked quest XP" or "Total quest XP"
-    local restedXP = GetFormattedRestedXP()
-    if restedXP then
-        tooltip:AddDoubleLine("Rested XP", restedXP .. " XP", 1, 0.82, 0, 1, 1, 1)
-    end
+    AddRestedXPToTooltip(tooltip)
+    GameTooltip_AddBlankLineToTooltip(tooltip)
+    GameTooltip_AddNormalLine(tooltip, ForeverQuestXPDB.trackedOnly and "Tracked quests" or "Quest XP")
     tooltip:AddDoubleLine("Ready to turn in", BreakUpLargeNumbers(readyXP) .. " XP", 1, 0.82, 0, 1, 1, 1)
     tooltip:AddDoubleLine("In progress", BreakUpLargeNumbers(inProgressXP) .. " XP", 1, 0.82, 0, 1, 1, 1)
-    tooltip:AddDoubleLine(totalLabel, BreakUpLargeNumbers(total) .. " XP", 1, 0.82, 0, 1, 1, 1)
     tooltip:AddDoubleLine("XP remaining after quests",
-        BreakUpLargeNumbers(math.max(0, remaining - total)) .. " XP", 1, 0.82, 0, 1, 1, 1)
+        BreakUpLargeNumbers(math.max(0, remaining - readyXP - inProgressXP)) .. " XP", 1, 0.82, 0, 1, 1, 1)
+
+    local xpPerHour = GetSessionXPPerHour()
+    local timeToLevel = xpPerHour > 0 and timeToLevelFormatter:Format(remaining * 3600 / xpPerHour) or "Not enough data"
+    GameTooltip_AddBlankLineToTooltip(tooltip)
+    GameTooltip_AddNormalLine(tooltip, "Session")
+    tooltip:AddDoubleLine("Session XP per hour", FormatXPPerHour(xpPerHour) .. " XP", 1, 0.82, 0, 1, 1, 1)
+    tooltip:AddDoubleLine("Time to level", timeToLevel, 1, 0.82, 0, 1, 1, 1)
     tooltip:Show()
+end
+
+local function ShowXPBarTextIfEnabled(tracker)
+    local frame = tracker.OverlayFrame
+    if ForeverQuestXPDB.alwaysShowXPText and frame and frame.Text then
+        frame.Text:Show()
+    end
 end
 
 local function HookXPBarTextAndTooltip(tracker)
     hooksecurefunc(tracker, "UpdateCurrentText", UpdateXPBarText)
+    tracker:HookScript("OnLeave", function(self)
+        UpdateXPBarText(self, false)
+    end)
+    if tracker.UpdateTextVisibility then
+        hooksecurefunc(tracker, "UpdateTextVisibility", ShowXPBarTextIfEnabled)
+        tracker:UpdateTextVisibility()
+    end
 
     local tick = tracker.ExhaustionTick
     if tick and tick.ExhaustionToolTipText then
@@ -209,15 +286,49 @@ local function RefreshXPBars()
     end
 end
 
-local function QueueQuestRefresh()
-    if questRefreshQueued then return end
-    questRefreshQueued = true
+local function QueueXPBarRefresh()
+    if xpBarRefreshQueued then return end
+    xpBarRefreshQueued = true
     C_Timer.After(0, function()
-        questRefreshQueued = false
-        AttachQuestOverlays()
-        UpdateQuestXPTotals()
+        xpBarRefreshQueued = false
+        if questScanPending then
+            questScanPending = false
+            AttachQuestOverlays()
+            UpdateQuestXPTotals()
+        end
+        RecordSessionXP()
         RefreshXPBars()
     end)
+end
+
+local function QueueQuestRefresh()
+    questScanPending = true
+    QueueXPBarRefresh()
+end
+
+local function RefreshPinnedXPBarText()
+    if InCombatLockdown() then return end
+
+    for _, overlay in pairs(overlaysByBar) do
+        UpdateXPBarText(overlay.tracker)
+    end
+end
+
+local function ApplyXPBarTextSetting()
+    if ForeverQuestXPDB.alwaysShowXPText then
+        xpRateTicker = xpRateTicker or C_Timer.NewTicker(30, RefreshPinnedXPBarText)
+    elseif xpRateTicker then
+        xpRateTicker:Cancel()
+        xpRateTicker = nil
+    end
+
+    for _, overlay in pairs(overlaysByBar) do
+        local tracker = overlay.tracker
+        if tracker.UpdateTextVisibility then
+            tracker:UpdateTextVisibility()
+        end
+        UpdateXPBarText(tracker)
+    end
 end
 
 local function RegisterAppearanceSlider(category, key, label, default, minimum, maximum, step, tooltip, formatValue)
@@ -255,8 +366,16 @@ local function RegisterSettings()
     local inProgressColor, inProgressOpacity = RegisterQuestFillSettings(category, "inProgress", "In progress", 0.40)
     local fontSize = RegisterAppearanceSlider(category, "fontSize", "XP bar font size", 12, 8, 24, 1,
         "Change the size of the text shown on the XP bar.", function(value) return tostring(value) end)
-    setupControlInitializers = { trackedOnly, readyColor, readyOpacity, inProgressColor, inProgressOpacity, fontSize }
+    local showTextSetting = Settings.RegisterAddOnSetting(category, addonName .. "_AlwaysShowXPText", "alwaysShowXPText",
+        ForeverQuestXPDB, Settings.VarType.Boolean, "Always show XP bar text", false)
+    showTextSetting:SetValueChangedCallback(ApplyXPBarTextSetting)
+    local alwaysShowXPText = Settings.CreateCheckbox(category, showTextSetting,
+        "Keep the XP bar text visible when the mouse is away from the bar.")
+    setupControlInitializers = {
+        trackedOnly, readyColor, readyOpacity, inProgressColor, inProgressOpacity, fontSize, alwaysShowXPText,
+    }
     Settings.RegisterAddOnCategory(category)
+    ApplyXPBarTextSetting()
 end
 
 local function ShowPendingSetupPopup()
@@ -270,7 +389,7 @@ local function ShowPendingSetupPopup()
 
     local popup = CreateFrame("Frame", addonName .. "WelcomePopup", UIParent, "BasicFrameTemplateWithInset")
     welcomePopup = popup
-    popup:SetSize(620, 360)
+    popup:SetSize(620, 394)
     popup:SetPoint("CENTER")
     popup:SetFrameStrata("HIGH")
     popup:SetClampedToScreen(true)
@@ -348,7 +467,11 @@ events:SetScript("OnEvent", function(_, event, arg1)
         end
     elseif event == "PLAYER_REGEN_ENABLED" then
         ShowPendingSetupPopup()
-    elseif event == "PLAYER_XP_UPDATE" or event == "UPDATE_EXHAUSTION" then
+    elseif event == "PLAYER_XP_UPDATE" then
+        if arg1 == "player" then
+            QueueXPBarRefresh()
+        end
+    elseif event == "UPDATE_EXHAUSTION" then
         RefreshXPBars()
     elseif ForeverQuestXPDB then
         QueueQuestRefresh()

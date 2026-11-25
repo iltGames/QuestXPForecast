@@ -3,8 +3,9 @@
 Preview quest turn-in XP on the default experience bar in World of Warcraft: Forever.
 
 - See XP from quests ready to turn in and quests still in progress.
-- Hover over the bar for the breakdown and how much XP you would still need after turning in those quests.
+- Hover over the bar to see session XP per hour. The tooltip separates the quest XP forecast from session stats, including an estimated time to level based on your current XP and session rate. The rate resets when you log in or reload the UI.
 - Enable **Tracked quests only** to forecast just the quests on your objective tracker.
+- Enable **Always show XP bar text** to keep the numbers and session XP per hour visible. The rate updates when you gain XP and every 30 seconds out of combat.
 - Customize each fill's color and opacity and the font size in **Options > AddOns > Quest XP Forecast**.
 - Use `/qxfconfig` to reopen the first-time setup window. During combat, it opens when combat ends.
 

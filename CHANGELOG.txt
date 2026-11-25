@@ -1,1 +1,3 @@
-Clarified the name of the helper that attaches quest overlays to the XP bars.
+Added session XP per hour to the XP bar and its tooltip, plus a time-to-level estimate.
+Added an option to always show XP bar text, including XP per hour, with a 30-second refresh outside combat.
+Grouped quest forecasts and session stats, removed the combined quest XP row, and moved the rested XP amount above its description.
