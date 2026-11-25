@@ -1,1 +1,1 @@
-Gave the helper that registers quest fill colors and opacity a more specific name.
+Named the quest log scan after the ready and in-progress XP totals it updates.

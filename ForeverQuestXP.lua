@@ -10,7 +10,7 @@ local defaultFillColor = "FFDBA540"
 local setupControlInitializers
 local welcomePopup
 
-local function ScanQuestXP()
+local function UpdateQuestXPTotals()
     local readyTotal, inProgressTotal = 0, 0
     local trackedOnly = ForeverQuestXPDB.trackedOnly
     for index = 1, C_QuestLog.GetNumQuestLogEntries() do
@@ -215,7 +215,7 @@ local function QueueQuestRefresh()
     C_Timer.After(0, function()
         questRefreshQueued = false
         AttachToXPBars()
-        ScanQuestXP()
+        UpdateQuestXPTotals()
         RefreshXPBars()
     end)
 end
