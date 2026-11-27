@@ -1,1 +1,1 @@
-Added Avg XP per kill to the XP bar tooltip. It uses up to 20 XP-awarding kills from the past 20 minutes.
+Opening the Character pane no longer reveals the XP bar text by itself. Hovering over the bar and the always-show text settings still work.

@@ -255,10 +255,14 @@ local function AppendQuestXPDetails(tracker)
     tooltip:Show()
 end
 
-local function ShowXPBarTextIfEnabled(tracker)
+local function UpdateXPBarTextVisibility(tracker)
     local frame = tracker.OverlayFrame
-    if ForeverQuestXPDB.alwaysShowXPText and frame and frame.Text then
+    if not frame or not frame.Text then return end
+    if ForeverQuestXPDB.alwaysShowXPText then
         frame.Text:Show()
+    elseif CharacterFrame and CharacterFrame:IsShown() then
+        -- Ignore the character pane's shared text lock while honoring the bar's own lock.
+        frame.Text:SetShown(GetCVarBool("xpBarText") or tracker.textLocked == true)
     end
 end
 
@@ -268,7 +272,7 @@ local function HookXPBarTextAndTooltip(tracker)
         UpdateXPBarText(self, false)
     end)
     if tracker.UpdateTextVisibility then
-        hooksecurefunc(tracker, "UpdateTextVisibility", ShowXPBarTextIfEnabled)
+        hooksecurefunc(tracker, "UpdateTextVisibility", UpdateXPBarTextVisibility)
         tracker:UpdateTextVisibility()
     end
 
